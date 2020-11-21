@@ -1,0 +1,10 @@
+Software setup:
+
+The OS I use in this project is the debian server imgae from Olimex.
+
+After setting up a user account and passwords, i started olinuxino-overlay and activated i2c bus 2.
+
+i2cdetect -y 2 shows 0x5a and 0x77 wich are the CCS811 and the BME280 chip.
+
+Because i have no idea how to write a proper driver, i use shellscripts to communicate vie the i2c bus with the chips.
+
