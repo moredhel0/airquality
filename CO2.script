@@ -1,3 +1,3 @@
 set term png
-set output "/var/measurement/CO2.png"
-plot '/var/measuremnt/CO2.dat'
+set output "/var/www/html/CO2.png"
+plot '/var/measurement/CO2.dat'
