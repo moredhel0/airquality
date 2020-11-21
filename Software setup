@@ -15,3 +15,5 @@ preserve-values.sh is used to save the last 100 sensor values via a cronjob.
 
 Gnuplot is used to generate png files
 
+I am using apache2 as web server.
+
