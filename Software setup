@@ -13,3 +13,5 @@ Everytime read-hum-press-temp.sh and read-co2-org.sh are called, the current val
 
 preserve-values.sh is used to save the last 100 sensor values via a cronjob.
 
+Gnuplot is used to generate png files
+
