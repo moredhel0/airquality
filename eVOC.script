@@ -1,0 +1,3 @@
+set term png
+set output "eVOC.png"
+plot 'eVOC.dat'
