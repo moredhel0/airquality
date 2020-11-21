@@ -7,4 +7,4 @@ After setting up a user account and passwords, i started olinuxino-overlay and a
 i2cdetect -y 2 shows 0x5a and 0x77 wich are the CCS811 and the BME280 chip.
 
 Because i have no idea how to write a proper driver, i use shellscripts to communicate vie the i2c bus with the chips.
-
+For communication with the rest of the software I created a directory /var/measurment and madre it readable and writable for everyone.
