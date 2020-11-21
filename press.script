@@ -1,3 +1,3 @@
 set term png
-set output "press.png"
-plot 'press.dat'
+set output "/var/measurement/press.png"
+plot '/var/measurement/press.dat'
