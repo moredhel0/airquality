@@ -1,4 +1,4 @@
-set term png
+set term png size 450, 300
 set output "/var/www/html/temp.png"
 set ylabel "°C"
 plot '/var/measurement/temp.dat' with lines title "Temperatur"

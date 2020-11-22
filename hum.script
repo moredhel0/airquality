@@ -1,4 +1,4 @@
-set term png
+set term png size 450, 300
 set output "/var/www/html/hum.png"
 set ylabel "%"
 plot '/var/measurement/hum.dat' with lines title "Luftfeuchtigkeit"

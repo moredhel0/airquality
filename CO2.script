@@ -1,4 +1,4 @@
-set term png
+set term png size 450, 300
 set output "/var/www/html/CO2.png"
 set ylabel "ppm"
 plot '/var/measurement/CO2.dat' with lines title "CO2 Konzentration"

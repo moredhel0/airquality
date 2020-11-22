@@ -1,4 +1,4 @@
-set term png
+set term png size 450, 300
 set output "/var/www/html/press.png"
 set ylabel "hPa"
 plot '/var/measurement/press.dat' with lines title "Luftdruck"
