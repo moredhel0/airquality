@@ -1,3 +1,4 @@
 set term png
 set output "/var/www/html/eVOC.png"
-plot '/var/measurement/eVOC.dat'
+set ylabel "ppb"
+plot '/var/measurement/eVOC.dat' with lines title "flüchtige organische Substanzen"

@@ -1,3 +1,4 @@
 set term png
 set output "/var/www/html/temp.png"
-plot '/var/measurement/temp.dat'
+set ylabel "°C"
+plot '/var/measurement/temp.dat' with lines title "Temperatur"
