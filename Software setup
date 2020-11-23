@@ -17,3 +17,4 @@ Gnuplot is used to generate png files
 
 I am using apache2 as web server.
 
+To run the script sbcl has to be installed.
