@@ -17,4 +17,8 @@ Gnuplot is used to generate png files
 
 I am using apache2 as web server.
 
-To run the script sbcl has to be installed.
+To run the lisp part sbcl has to be installed.
+
+the .script files have to be placed in /var/measurement/
+
+the .sh and .lisp files can be anywhere and should be started by cronjobs
