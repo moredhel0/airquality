@@ -9,16 +9,6 @@
   (parse-integer
    (concatenate 'string (subseq string0 2) (subseq string1 2)) :radix 16))
 
-(defun calculate-t-fine ( adc-T dig-T1 dig-T2 dig-T3 )
-  (let (var1 var2)
-    (setf var1 (* (- (/ adc-T 16384.0) (/ dig-T1 1024.0)) dig-T2 ))
-    (setf var2 (* (- (/ adc-T 131972.0) (/ dig-T1 8192.0))
-		  (- (/ adc-T 131072.0) (/ dig-T1 8192.0)) dig-T3))
-    (+ var1 var2)))
-
-(defun calculate-temp ( adc-T dig-T1 dig-T2 dig-T3 )
-  (/ (get-t-fine adc-T dig-T1 dig-T2 dig-T3) 5120.0))
-
 (defun make-plist (data-string line-prefix counter)
   (cond
     ((string-equal "0" line-prefix)
@@ -312,6 +302,14 @@
     (T ()))
   )
 
+(defun read-signed-int (data-string)
+  (multiple-value-bind (number digits)
+      (parse-integer data-string :radix 16)
+    (setf digits (* digits 4))
+    (if (>= number (expt 2 (- digits 1)))
+	(- number (expt 2 digits))
+	number)))
+
 (defun convert-line-to-list (read-string)
   (let ((prefix (subseq read-string 0 1))
 	(workstring (subseq read-string 3))
@@ -345,50 +343,138 @@
    :radix 16))
 
 (defun get-dig-T2 ()
-  (parse-integer
-   (concatenate 'string (getf *trimming* :8B)(getf *trimming* :8A))
-   :radix 16))
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :8B)(getf *trimming* :8A))))
 
 (defun get-dig-T3 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :8D)(getf *trimming* :8C))))
+
+(defun get-dig-P1 ()
   (parse-integer
-   (concatenate 'string (getf *trimming* :8D)(getf *trimming* :8C))
+   (concatenate 'string (getf *trimming* :8F)(getf *trimming* :8E))
    :radix 16))
 
-(defun get-temp (data-list)
-  (calculate-temp (parse-integer (concatenate 'string
-					      (getf data-list :FA)
-					      (getf data-list :FB)
-					      (subseq (getf data-list :fc)
-						      0 1)) :radix 16)
-		  (get-dig-t1) (get-dig-t2) (get-dig-t3)))
+(defun get-dig-P2 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :91)(getf *trimming* :90))))
 
-(defun reverse-bitorder (input-string)
-  (if (= 0 (length input-string))
-      ""
-      (if (= 1 (length input-string))
-	  (cond
-	    ((string-equal "0" input-string) "0")
-	    ((string-equal "1" input-string) "8")
-	    ((string-equal "2" input-string) "4")
-	    ((string-equal "3" input-string) "c")
-	    ((string-equal "4" input-string) "2")
-	    ((string-equal "5" input-string) "a")
-	    ((string-equal "6" input-string) "6")
-	    ((string-equal "7" input-string) "e")
-	    ((string-equal "8" input-string) "1")
-	    ((string-equal "9" input-string) "9")
-	    ((string-equal "a" input-string) "5")
-	    ((string-equal "b" input-string) "d")
-	    ((string-equal "e" input-string) "7")
-	    ((string-equal "f" input-string) "f")
-	    ((string-equal "0" input-string) "0")
-	    ((string-equal "0" input-string) "0"))
-	  (concatenate 'string (reverse-bitorder (subseq input-string 0 1))
-		       (reverse-bitorder (subseq input-string 1))))))
+(defun get-dig-P3 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :93)(getf *trimming* :92))))
+
+(defun get-dig-P4 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :95)(getf *trimming* :94))))
+
+(defun get-dig-P5 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :97)(getf *trimming* :96))))
+
+(defun get-dig-P6 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :99)(getf *trimming* :98))))
+
+(defun get-dig-P7 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :9B)(getf *trimming* :9A))))
+
+(defun get-dig-P8 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :9D)(getf *trimming* :9C))))
+
+(defun get-dig-P9 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :9F)(getf *trimming* :9E))))
+
+(defun get-dig-H1 ()
+  (parse-integer (getf *trimming* :A1) :radix 16))
+
+(defun get-dig-H2 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :E2)(getf *trimming* :E1))))
+
+(defun get-dig-H3 ()
+  (parse-integer (getf *trimming* :e3) :radix 16))
+
+(defun get-dig-H4 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :E4)
+		(subseq (getf *trimming* :E5) 1))))
+
+(defun get-dig-H5 ()
+  (read-signed-int
+   (concatenate 'string (getf *trimming* :E6)
+		(subseq (getf *trimming* :E5) 0 1))))
+
+(defun get-dig-H6 ()
+  (read-signed-int (getf *trimming* :E7)))
+
+(defun get-adc-t (data-list)
+  (parse-integer (concatenate 'string
+			      (getf data-list :fA)
+			      (getf data-list :FB)
+			      (subseq (getf data-list :FC) 0 1)) :radix 16))
+
+(defun get-temp (data-list)
+  (/ (get-t-fine data-list) 5120.0))
+
+(defun get-t-fine (data-list)
+  (let (var1 var2)
+    (setf var1 (* (- (/ (get-adc-T data-list) 16384.0d0)
+		     (/ (get-dig-T1) 1024.0d0)) (get-dig-T2)))
+    (setf var2  (* (- (/ (get-adc-T data-list) 131072.0d0)
+		      (/ (get-dig-T1) 8192.0d0))
+		   (- (/ (get-adc-T data-list) 131072.0d0)
+		      (/ (get-dig-T1) 8192.0d0)) (get-dig-T3)))
+    (+ var1 var2)))
+
+(defun get-adc-p (data-list)
+  (parse-integer (concatenate 'string
+			      (getf data-list :f7)
+			      (getf data-list :F8)
+			      (subseq (getf data-list :F9) 0 1)) :radix 16))
+
+(defun get-pressure (data-list)
+  (let ((var1 (- (/ (get-t-fine data-list) 2.0d0) 64000.0d0)) var2 p)
+    (setf var2 (* var1 var1 (/ (get-dig-p6) 32768.0d0)))
+    (setf var2 (+ var2 (* var1 (get-dig-p5) 2.0d0)))
+    (setf var2 (+ (/ var2 4.0d0) (* (get-dig-p4) 65536.0d0)))
+    (setf var1 (/ (+ (* (get-dig-p3) var1 var1 (/ 524288.0d0))
+		  (* (get-dig-P2) var1)) 524288.0d0))
+    (setf var1 (* (+ 1.0 (/ var1 32768.0d0)) (get-dig-p1)))
+    (if (= 0.0 var1)
+	0
+	(progn
+	  (setf p (- 1048576.0d0 (get-adc-p data-list)))
+	  (setf p (* (- p (/ var2 4096.0d0)) (/ 6250.0d0 var1)))
+	  (setf var1 (* (get-dig-p9) p (/ p 2147483648.0d0)))
+	  (setf var2 (* p (/ (get-dig-p8) 32768.0d0)))
+	  (+ p (/ (+ var1 var2 (get-dig-p7)) 16.0d0))))))
+
+(defun get-p-hpa (data-list)
+  (/ (get-pressure data-list) 100.0d0))
+
+(defun get-adc-hum (data-list)
+  (parse-integer
+   (concatenate 'string (getf data-list :FD)(getf data-list :FE))
+   :radix 16))
+
+(defun get-hum (data-list)
+  (let ((var_H (- (get-t-fine data-list) 76800.0d0)))
+    (* (- (get-adc-hum data-list)
+	  (+ (* (get-dig-H4) 64.0d0)
+	     (* (get-dig-H5) (/ 16384.0d0) var_H)))
+       (* (get-dig-H2) (/ 65536.0d0)
+	  (+ 1.0d0 (* (get-dig-H6)
+		      (/ 67108864.0d0) var_H
+		      (+ 1.0d0 (* (get-dig-H3) (/ 67108864.0d0) var_H))))))))
 
 (defun make-site-contents ()
   (let ((current-values-CO2 ()) (current-values-eTVOC ())
-	current-line last-CO2 last-eTVOC)
+	(current-values-temp ()) (current-values-hum ())
+	(current-values-press ())
+	current-line last-CO2 last-eTVOC last-temp last-hum last-press)
     (dotimes (i 100)
       (ignore-errors
 	(with-open-file (file-input
@@ -402,7 +488,17 @@
 	  (setf current-values-eTVOC (append current-values-eTVOC
 				(list (get-CO2-or-eTVOC
 				 (subseq current-line 10 14)
-				 (subseq current-line 15 19))))))))
+				 (subseq current-line 15 19)))))))
+      (ignore-errors
+	(setf current-line
+	      (read-dump-file
+	       (format nil "/var/measurement/temperature-sicher~a" (- 99 i))))
+	(setf current-values-temp (append current-values-temp
+					  (list (get-temp current-line))))
+	(setf current-values-press (append current-values-press
+					  (list (get-p-hpa current-line))))
+	(setf current-values-hum (append current-values-hum
+					  (list (get-hum current-line))))))
     (with-open-file (input-stream "/var/measurement/CO2-data")
       (setf current-line (read-line input-stream))
       (setf current-values-CO2 (append current-values-CO2
@@ -415,16 +511,41 @@
 				 (subseq current-line 15 19))))))
     (setf last-CO2 (first (last current-values-CO2)))
     (setf last-eTVOC (first (last current-values-eTVOC)))
+    (setf current-line (read-dump-file "/var/measurement/temperature"))
+    (setf last-temp (get-temp current-line))
+    (setf last-hum (get-hum current-line))
+    (setf last-press (get-p-hpa current-line))
+    (setf current-values-hum (append current-values-hum (list last-hum)))
+    (setf current-values-press (append current-values-press (list last-press)))
+    (setf current-values-temp (append current-values-temp (list last-temp)))
     (with-open-file
 	(CO2-output "/var/measurement/CO2.dat"
-		    :direction :output :if-exists :supersede)
+		    :direction :output :if-exists :supersede
+				     :if-does-not-exist :create)
       (with-open-file (eTVOC-output "/var/measurement/eVOC.dat"
-				    :direction :output :if-exists :supersede)
+				    :direction :output :if-exists :supersede
+				     :if-does-not-exist :create)
 	(dotimes (i (length current-values-CO2))
 	  (format CO2-output "~a ~a~%" i (nth i current-values-CO2))
 	  (format eTVOC-output "~a ~a~%" i (nth i current-values-eTVOC)))))
+    (with-open-file (hum-output "/var/measurement/hum.dat" :direction
+				:output :if-exists :supersede
+				     :if-does-not-exist :create)
+      (with-open-file (press-output "/var/measurement/press.dat" :direction
+				    :output :if-exists :supersede
+				     :if-does-not-exist :create)
+	(with-open-file (temp-output "/var/measurement/temp.dat" :direction
+				     :output :if-exists :supersede
+				     :if-does-not-exist :create)
+	  (dotimes (i (length current-values-press))
+	    (format press-output "~a ~a~%" i
+		    (round (nth i current-values-press)))
+	    (format hum-output "~a ~,1f~%" i (nth i current-values-hum))
+	    (format temp-output "~a ~,2f~%" i (nth i current-values-temp))
+	    ))))
     (with-open-file (site-output "/var/www/html/index.html"
-				 :direction :output :if-exists :supersede)
+				 :direction :output :if-exists :supersede
+				     :if-does-not-exist :create)
       (format site-output "~a" "<HTML><HEAD><Title>Luftmesswerte</Title>")
       (format site-output "~a" "<META http-equiv=\"refresh\" content=\"60\">")
       (format site-output "~a"
@@ -446,8 +567,32 @@
       (format site-output "~a"
 	      "<IMG src=\"eVOC.png\" alt=\"die letzten 100 Messwerte\">")
       (format site-output "~a" "</TD></TR>")
+      (format site-output "~a" "<TR><TD>")
+      (format site-output "~a" "<H2>Luftfeuchtigkeit:</H2>")
+      (format site-output "aktueller Messwert: ~,1f%." last-hum)
+      (format site-output "~a" "</TD><TD>die letzten Messwerte:<BR><BR>")
+      (format site-output "~a"
+	      "<IMG src=\"hum.png\" alt=\"die letzten 100 Messwerte\">")
+      (format site-output "~a" "</TD></TR>")
+      (format site-output "~a" "<TR><TD>")
+      (format site-output "~a" "<H2>Temperatur:</H2>")
+      (format site-output "aktueller Messwert: ~,2f °C." last-temp)
+      (format site-output "~a" "</TD><TD>die letzten Messwerte:<BR><BR>")
+      (format site-output "~a"
+	      "<IMG src=\"temp.png\" alt=\"die letzten 100 Messwerte\">")
+      (format site-output "~a" "</TD></TR>")
+      (format site-output "~a" "<TR><TD>")
+      (format site-output "~a" "<H2>Luftdruck:</H2>")
+      (format site-output "aktueller Messwert: ~a hPa." (round last-press))
+      (format site-output "~a" "</TD><TD>die letzten Messwerte:<BR><BR>")
+      (format site-output "~a"
+	      "<IMG src=\"press.png\" alt=\"die letzten 100 Messwerte\">")
+      (format site-output "~a" "</TD></TR>")
       (format site-output "~a" "</TABLE></BODY></HTML>")))
     (do-plot "CO2")
-    (do-plot "eVOC"))
+    (do-plot "eVOC")
+    (do-plot "temp")
+    (do-plot "hum")
+    (do-plot "press"))
 
 (make-site-contents)
