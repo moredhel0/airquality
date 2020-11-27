@@ -1,6 +1,6 @@
 Software setup:
 
-The OS I use in this project is the debian server imgae from Olimex.
+The OS I use in this project is the debian server image from Olimex.
 
 After setting up a user account and passwords, i started olinuxino-overlay and activated i2c bus 2.
 
