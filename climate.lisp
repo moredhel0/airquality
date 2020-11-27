@@ -75,7 +75,7 @@
       (format site-output "~a" "</TD></TR>")
       (format site-output "~a" "<TR><TD>")
       (format site-output "~a" "<H2>Temperatur:</H2>")
-      (format site-output "aktueller Messwert: ~,2f °C."
+      (format site-output "aktueller Messwert: ~,2f &deg;C."
 	      (getf last-values :temp))
       (format site-output "~a" "</TD><TD>die letzten Messwerte:<BR><BR>")
       (format site-output "~a"
