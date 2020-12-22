@@ -461,3 +461,37 @@
 	  (+ 1.0d0 (* (get-dig-H6)
 		      (/ 67108864.0d0) var_H
 		      (+ 1.0d0 (* (get-dig-H3) (/ 67108864.0d0) var_H))))))))
+
+(defun get-current-values ()
+  (let ((ret ()) current-value)
+    (with-open-file (co2-input-stream "/var/measurement/CO2-data")
+      (setf current-value (read-line co2-input-stream)))
+    (setf ret (list :co2
+		    (get-co2-or-etvoc
+		     (subseq current-value 0 4)
+		     (subseq current-value 5 9))
+		    :etvoc
+		    (get-co2-or-etvoc
+		     (subseq current-value 10 14)
+		     (subseq current-value 15 19))))
+    (setf current-value (read-dump-file "/var/measurement/temperature"))
+    (setf ret (append ret (list
+			   :temp (get-temp current-value)
+			   :hum (get-hum current-value)
+			   :press (get-p-hpa current-value))))
+    ret))
+
+(defun add-current-value ()
+  (let ((current-values ()) (stored-values ()))
+    (with-open-file (current-values-input "/var/measurement/converted-values")
+      (setf current-values (read current-values-input)))
+    (ignore-errors
+      (with-open-file (history-input "/var/measurement/stored-values")
+	(setf stored-values (read history-input))))
+    (if (= 100 (length stored-values))
+	(setf stored-values (rest stored-values)))
+    (setf stored-values (append stored-values (list current-values)))
+    (with-open-file (values-output "/var/measurement/stored-values"
+				   :direction :output :if-exists :supersede
+				   :if-does-not-exist :create)
+      (print stored-values values-output))))
